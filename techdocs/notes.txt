@@ -1,0 +1,16 @@
+https://github.com/GaijinEntertainment/quirrel
+
+
+http://squirrel-lang.org/
+https://github.com/albertodemichelis/squirrel
+http://sourceforge.net/projects/squirrel/
+https://github.com/albertodemichelis/squirrel.git
+https://github.com/mingodad/squilu
+
+https://grumpygamer.com/delores_dev/
+https://github.com/grumpygamer/DeloresDev
+
+
+https://github.com/dbohdan/embedded-scripting-languages
+
+

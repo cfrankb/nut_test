@@ -1,0 +1,6 @@
+[submodule "external/squirrel"]
+	path = external/squirrel
+	url = https://github.com/albertodemichelis/squirrel.git
+[submodule "external/quirrel"]
+	path = external/quirrel
+	url = https://github.com/GaijinEntertainment/quirrel.git
