@@ -32,14 +32,9 @@ int main()
     // rat.saveByteCode("data/scripts/test.nut", "out/hello.nutc");
 
     auto root = rat.root();
-    // auto configTable = EnsureTable(rat.vm(), root, "Config");
     auto configTable = rat.getOrCreateTable(root, "Config");
-    // Sqrat::RootTable(rat.vm()).Bind("Config", configTable);
-    // SafeSetValue(rat.vm(), configTable, "isFullScreen", true);
     rat.setValue(configTable, "isFullScreen", true);
     rat.setValue(configTable, "color", "red");
-
-    // bool result = SafeGetValue<bool>(rat.vm(), configTable, "isFullScreen");
     auto result = rat.getValue<bool>(configTable, "isFullScreen");
     LOGI("result %d", result);
 
