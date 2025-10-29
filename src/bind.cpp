@@ -3,11 +3,34 @@
 #include "bind.h"
 #include "treerat.h"
 #include <sqrat.h>
-#include "methods.h"
 #include "entity.h"
+#include "map.h"
+#include "methods.h"
 
-void registerBinding(CTreeRat & rat)
+void registerBinding(CTreeRat &rat)
 {
+    Sqrat::Class<CMap> classCMap(rat.vm(), "CMap");
+    classCMap
+        .Ctor<>()
+        .Func("at", &CMap::at)
+        .Func("set", &CMap::set)
+        .Func("len", &CMap::len)
+        .Func("hei", &CMap::hei)
+        .Func("findFirst", &CMap::findFirst)
+        .Func("count", &CMap::count)
+        .Func("fill", &CMap::fill)
+        .Func("getAttr", &CMap::getAttr)
+        .Func("setAttr", &CMap::setAttr)
+        .Func("size", &CMap::size)
+        .Func("lastError", &CMap::lastError)
+        .Func("title", &CMap::title)
+        .Func("setTitle", &CMap::setTitle)
+        .Func("replaceTile", &CMap::replaceTile)
+        .StaticFunc("toKey", &CMap::toKey)
+        .Func("isValid", &CMap::isValid)
+        .Func("shift", &CMap::shift);
+    Sqrat::RootTable(rat.vm()).SetValue("CMap", classCMap);
+
     Sqrat::Class<Entity> classEntity(rat.vm(), "Entity");
     classEntity
         .Ctor<>()
@@ -25,9 +48,19 @@ void registerBinding(CTreeRat & rat)
         .Prop("Speed", &Entity::GetSpeed, &Entity::SetSpeed)
         .StaticVar("MAX_HEALTH", &Entity::MAX_HEALTH);
     Sqrat::RootTable(rat.vm()).Bind("Entity", classEntity);
+
+    // === Direction Enum ===
+    auto enumDirection = Sqrat::ConstTable(rat.vm())
+                             .Const("UP", CMap::Direction::UP)
+                             .Const("DOWN", CMap::Direction::DOWN)
+                             .Const("LEFT", CMap::Direction::LEFT)
+                             .Const("RIGHT", CMap::Direction::RIGHT)
+                             .Const("MAX", CMap::Direction::MAX)
+                             .Const("NOT_FOUND", CMap::Direction::NOT_FOUND);
+    Sqrat::RootTable(rat.vm()).SetValue("Direction", enumDirection);
 }
 
-void registerGlobal(CTreeRat & rat)
+void registerGlobal(CTreeRat &rat)
 {
     rat.registerFn("printHello", print_hello);
     rat.registerFn("greet", greet);

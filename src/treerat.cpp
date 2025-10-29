@@ -268,3 +268,27 @@ Sqrat::Object CTreeRat::getSlot(const Sqrat::Table &table, const std::string &ke
     sq_pop(m_vm, 2); // clean up
     throw std::runtime_error("Slot not found");
 }
+
+bool CTreeRat::pushClassInstance(HSQUIRRELVM vm, const std::string &className, void *ptr)
+{
+    // 1. Push the class (CMap) onto the stack
+    sq_pushroottable(vm);
+    sq_pushstring(vm, _SC(className.c_str()), -1);
+    if (SQ_FAILED(sq_get(vm, -2)))
+    {
+        sq_pop(vm, 1);
+        return false; // CMap not registered
+    }
+
+    // 2. Create a new instance (but don't construct!)
+    sq_createinstance(vm, -1);
+    sq_remove(vm, -2); // remove class
+    sq_remove(vm, -2); // remove root
+
+    // 3. Set the native pointer (no release hook!)
+    sq_setinstanceup(vm, -1, ptr);
+
+    // IMPORTANT: DO NOT set releasehook — C++ owns the object!
+    // sq_setreleasehook(v, -1, ...);  // ← REMOVE THIS
+    return true;
+}

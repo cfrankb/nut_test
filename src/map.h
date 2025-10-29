@@ -64,8 +64,8 @@ public:
     CMap(uint16_t len = 0, uint16_t hei = 0, uint8_t t = 0);
     CMap(const CMap &map);
     ~CMap();
-    uint8_t at(const int x, const int y) const;
-    void set(const int x, const int y, const uint8_t t);
+    uint8_t at(const int x, const int y) const;          // @func
+    void set(const int x, const int y, const uint8_t t); // @func
     uint8_t &get(const int x, const int y);
     bool read(const char *fname);
     bool write(const char *fname) const;
@@ -74,33 +74,33 @@ public:
     bool write(FILE *tfile) const;
     bool write(IFile &tfile) const;
     void clear();
-    int len() const;
-    int hei() const;
+    int len() const; // @func
+    int hei() const; // @func
     bool resize(uint16_t in_len, uint16_t in_hei, uint8_t t, bool fast);
-    const Pos findFirst(const uint8_t tileId) const;
-    size_t count(const uint8_t tileId) const;
-    void fill(uint8_t ch = 0);
-    uint8_t getAttr(const uint8_t x, const uint8_t y) const;
-    void setAttr(const uint8_t x, const uint8_t y, const uint8_t a);
-    size_t size() const;
-    const char *lastError();
+    const Pos findFirst(const uint8_t tileId) const;                 // @func
+    size_t count(const uint8_t tileId) const;                        // @func
+    void fill(uint8_t ch = 0);                                       // @func
+    uint8_t getAttr(const uint8_t x, const uint8_t y) const;         // @func
+    void setAttr(const uint8_t x, const uint8_t y, const uint8_t a); // @func
+    size_t size() const;                                             // @func
+    const char *lastError();                                         // @func
     CMap &operator=(const CMap &map);
     bool fromMemory(uint8_t *mem);
-    const char *title();
-    void setTitle(const char *title);
-    void replaceTile(const uint8_t, const uint8_t);
+    const char *title();                            // @func
+    void setTitle(const char *title);               // @func
+    void replaceTile(const uint8_t, const uint8_t); // @func
     const AttrMap &attrs() { return m_attrs; }
     CStates &states();
     inline const CStates &statesConst() const { return *m_states; };
-    static uint16_t toKey(const uint8_t x, const uint8_t y);
-    static uint16_t toKey(const Pos &pos);
+    static uint16_t toKey(const uint8_t x, const uint8_t y); // @staticfunc
+    // static uint16_t toKey(const Pos &pos);
     static Pos toPos(const uint16_t key);
-    inline bool isValid(const int x, const int y) const
+    inline bool isValid(const int x, const int y) const // @func
     {
         return x >= 0 && x < m_len && y >= 0 && y < m_hei;
     }
 
-    enum Direction : int16_t
+    enum Direction : int16_t // @enum
     {
         UP,
         DOWN,
@@ -109,7 +109,7 @@ public:
         MAX = RIGHT,
         NOT_FOUND = -1 // 0xffff
     };
-    void shift(Direction aim);
+    void shift(Direction aim); // @func
     void debug();
 
 private:

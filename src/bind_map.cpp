@@ -353,7 +353,7 @@ SQInteger CMap_toKey(HSQUIRRELVM v)
         {
             return sq_throwerror(v, _SC("Pos table {x,y} expected"));
         }
-        sq_pushinteger(v, CMap::toKey(pos));
+        //  sq_pushinteger(v, CMap::toKey(pos));
     }
     return 1;
 }

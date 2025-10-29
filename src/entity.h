@@ -45,6 +45,16 @@ public:
     int getX() { return x; }
     int getY() { return y; }
 
+    enum Direction : int16_t
+    {
+        UP,
+        DOWN,
+        LEFT,
+        RIGHT,
+        MAX = RIGHT,
+        NOT_FOUND = -1 // 0xffff
+    };
+
 private:
     const char *name;                    // @const
     int x;                               // @var:X @var:x
