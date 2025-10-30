@@ -43,8 +43,8 @@ void sq_test(CTreeRat &rat)
         print("Hello from script");
       //  throw "This is a test error";
     )";
-    // rat.loadString(code);
-    // rat.runScript("data/scripts/test.nut");
+    rat.loadString(code);
+    rat.runScript("data/scripts/test.nut");
 
     rat.runScript("data/scripts/entity_test.nut");
 
@@ -59,10 +59,10 @@ void sq_test(CTreeRat &rat)
     entity.Move(10, 20);
 
     auto const1 = Sqrat::ConstTable(rat.vm())
-                      .Const("Red", 1)
-                      .Const("Green", 2)
-                      .Const("Blue", 3);
-    Sqrat::RootTable(rat.vm()).SetValue("Color", const1);
+                      .Const("Red", "#ff0000")
+                      .Const("Green", "#00ff00")
+                      .Const("Blue", "#0000ff");
+    Sqrat::RootTable(rat.vm()).Bind("Colors", const1);
 
     Sqrat::Table configTable1(rat.getSlot(root, "Config"));
     rat.setValue(configTable1, "name", "John");
@@ -77,6 +77,7 @@ int main()
     registerGlobal(rat);
     registerBinding(rat);
 
+    sq_test(rat);
     map_test(rat);
 
     return 0;

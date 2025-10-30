@@ -3,16 +3,17 @@
 #include "bind.h"
 #include "treerat.h"
 #include <sqrat.h>
+#include "entity.h"
 #include "map.h"
 #include "methods.h"
-#include "states.h"
-#include "entity.h"
 #include "statedata.h"
+#include "states.h"
 
 void registerBinding(CTreeRat & rat)
 {
-    Sqrat::Class<CStates> classCStates(rat.vm(), "CStates");
-    classCStates
+    HSQUIRRELVM vm = rat.vm();
+    // === CStates Class ===
+    auto classCStates = Sqrat::Class<CStates>(vm, "CStates")
         .Ctor<>()
         .Func("setU", &CStates::setU)
         .Func("setS", &CStates::setS)
@@ -21,13 +22,14 @@ void registerBinding(CTreeRat & rat)
         .Func("hasU", &CStates::hasU)
         .Func("hasS", &CStates::hasS)
         .Func("debug", &CStates::debug);
-    Sqrat::RootTable(rat.vm()).Bind("CStates", classCStates);
+    Sqrat::RootTable(vm).Bind("CStates", classCStates);
 
-    Sqrat::Class<CMap> classCMap(rat.vm(), "CMap");
-    classCMap
+    // === CMap Class ===
+    auto classCMap = Sqrat::Class<CMap>(vm, "CMap")
         .Ctor<>()
         .Func("at", &CMap::at)
         .Func("set", &CMap::set)
+        .Func("clear", &CMap::clear)
         .Func("len", &CMap::len)
         .Func("hei", &CMap::hei)
         .Func("resize", &CMap::resize)
@@ -48,10 +50,10 @@ void registerBinding(CTreeRat & rat)
         .Func("isValid", &CMap::isValid)
         .Func("shift", &CMap::shift)
         .Func("debug", &CMap::debug);
-    Sqrat::RootTable(rat.vm()).Bind("CMap", classCMap);
+    Sqrat::RootTable(vm).Bind("CMap", classCMap);
 
-    Sqrat::Class<Entity> classEntity(rat.vm(), "Entity");
-    classEntity
+    // === Entity Class ===
+    auto classEntity = Sqrat::Class<Entity>(vm, "Entity")
         .Ctor<>()
         .Func("Move", &Entity::Move)
         .Func("moveDir", &Entity::MoveDir)
@@ -65,10 +67,10 @@ void registerBinding(CTreeRat & rat)
         .Var("health", &Entity::health)
         .Prop("Speed", &Entity::GetSpeed, &Entity::SetSpeed)
         .StaticVar("MAX_HEALTH", &Entity::MAX_HEALTH);
-    Sqrat::RootTable(rat.vm()).Bind("Entity", classEntity);
+    Sqrat::RootTable(vm).Bind("Entity", classEntity);
 
     // === StateValue Enum ===
-    auto enumStateValue = Sqrat::ConstTable (rat.vm())
+    auto enumStateValue = Sqrat::ConstTable(vm)
         .Const("TIMEOUT", ::StateValue::TIMEOUT)
         .Const("POS_ORIGIN", ::StateValue::POS_ORIGIN)
         .Const("POS_EXIT", ::StateValue::POS_EXIT)
@@ -97,24 +99,37 @@ void registerBinding(CTreeRat & rat)
         .Const("MSGD", ::StateValue::MSGD)
         .Const("MSGE", ::StateValue::MSGE)
         .Const("MSGF", ::StateValue::MSGF);
-    Sqrat::RootTable(rat.vm()).Bind("StateValue", enumStateValue);
+    Sqrat::RootTable(vm).Bind("StateValue", enumStateValue);
 
     // === StateType Enum ===
-    auto enumStateType = Sqrat::ConstTable (rat.vm())
+    auto enumStateType = Sqrat::ConstTable(vm)
         .Const("TYPE_X", ::StateType::TYPE_X)
         .Const("TYPE_U", ::StateType::TYPE_U)
         .Const("TYPE_S", ::StateType::TYPE_S);
-    Sqrat::RootTable(rat.vm()).Bind("StateType", enumStateType);
+    Sqrat::RootTable(vm).Bind("StateType", enumStateType);
 
     // === Direction Enum ===
-    auto enumDirection = Sqrat::ConstTable (rat.vm())
+    auto enumDirection = Sqrat::ConstTable(vm)
         .Const("UP", CMap::Direction::UP)
         .Const("DOWN", CMap::Direction::DOWN)
         .Const("LEFT", CMap::Direction::LEFT)
         .Const("RIGHT", CMap::Direction::RIGHT)
         .Const("MAX", CMap::Direction::MAX)
         .Const("NOT_FOUND", CMap::Direction::NOT_FOUND);
-    Sqrat::RootTable(rat.vm()).Bind("Direction", enumDirection);
+    Sqrat::RootTable(vm).Bind("Direction", enumDirection);
+
+    // === KeyOption Struct ===
+    auto structKeyOption = Sqrat::Class<KeyOption>(vm, "KeyOption")
+        .Var("display", &::KeyOption::display)
+        .Var("value", &::KeyOption::value);
+    Sqrat::RootTable(vm).Bind("KeyOption", structKeyOption);
+
+    // === Pos Struct ===
+    auto structPos = Sqrat::Class<Pos>(vm, "Pos")
+        .Ctor<int16_t, int16_t>()
+        .Var("x", &::Pos::x)
+        .Var("y", &::Pos::y);
+    Sqrat::RootTable(vm).Bind("Pos", structPos);
 }
 
 void registerGlobal(CTreeRat & rat)

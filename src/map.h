@@ -26,7 +26,7 @@
 #include "states.h"
 
 typedef std::unordered_map<uint16_t, uint8_t> AttrMap;
-struct Pos
+struct Pos // @struct|int16_t,int16_t
 {
     int16_t x;
     int16_t y;
@@ -75,7 +75,7 @@ public:
     bool read(IFile &file);
     bool write(FILE *tfile) const;
     bool write(IFile &tfile) const;
-    void clear();
+    void clear();                                                        // @func
     int len() const;                                                     // @func
     int hei() const;                                                     // @func
     bool resize(uint16_t in_len, uint16_t in_hei, uint8_t t, bool fast); // @func

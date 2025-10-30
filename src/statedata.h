@@ -59,7 +59,7 @@ enum StateType // @enum
     TYPE_S,
 };
 
-struct KeyOption
+struct KeyOption //  @struct
 {
     std::string display;
     uint16_t value;
