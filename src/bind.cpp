@@ -12,6 +12,7 @@
 void registerBinding(CTreeRat & rat)
 {
     HSQUIRRELVM vm = rat.vm();
+
     // === CStates Class ===
     auto classCStates = Sqrat::Class<CStates>(vm, "CStates")
         .Ctor<>()

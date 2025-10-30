@@ -2,11 +2,17 @@
 
 This project is about creating a binding contract that can be used to automate generating C++ that actualize the runtime linkage.
 
+```cpp
+CTreeRat rat;
+registerGlobal(rat);
+registerBinding(rat);
+```
+
 # Auto Binding
 
 Run the binder script to update `bind.cpp` and `bind.h`
 
-```
+```bash
 $ python bin/binder.py
 ```
 
@@ -37,14 +43,20 @@ public:
     CMap(uint16_t len = 0, uint16_t hei = 0, uint8_t t = 0);
     CMap(const CMap &map);
     ~CMap();
-    uint8_t at(const int x, const int y) const; // @func
-    void set(const int x, const int y, const uint8_t t); // @func
+    // @func
+    uint8_t at(const int x, const int y) const;
+    // @func
+    void set(const int x, const int y, const uint8_t t);
 ...
 
-    inline const CStates &statesConst() const { return *m_states; }; // @func
-    static uint16_t toKey(const uint8_t x, const uint8_t y);  // @staticfunc|uint16_t,uint8_t,uint8_t
-    static uint16_t toKey(const Pos &pos); // @staticfunc:toKeyPos|uint16_t,const Pos&
-    static Pos toPos(const uint16_t key);   // @staticfunc
+    // @func
+    inline const CStates &statesConst() const { return *m_states; };
+    // @staticfunc|uint16_t,uint8_t,uint8_t
+    static uint16_t toKey(const uint8_t x, const uint8_t y);
+    // @staticfunc:toKeyPos|uint16_t,const Pos&
+    static uint16_t toKey(const Pos &pos);
+    // @staticfunc
+    static Pos toPos(const uint16_t key);
     ...
 
 ```
@@ -62,13 +74,15 @@ Square brackets are used to denote optional parts of the tag annotation.
 #### idiom
 
 ```cpp
-int getSize(); // @func[:alias]
+// @func[:alias]
+int getSize();
 ```
 
 #### overload
 
 ```cpp
-void resize(int, int); // @func|void,int,int
+// @func|void,int,int
+void resize(int, int);
 ```
 
 ## @prop
@@ -76,7 +90,8 @@ void resize(int, int); // @func|void,int,int
 Create properties. Declare the setter and getter functions to access them,
 
 ```cpp
-int m_size; // @prop:attr,getter[,setter]
+// @prop:attr,getter[,setter]
+int m_size;
 ```
 
 ## @var @staticvar
@@ -84,25 +99,29 @@ int m_size; // @prop:attr,getter[,setter]
 variable exposed must have visibility in the binding context.
 
 ```cpp
-int m_title; // @var[:alias]
+// @var[:alias]
+int m_title;
 ```
 
 ## @struct
 
-If optional parameters are declared, a constructor is addded.
+If optional parameters are declared, a constructor is added.
 
 ```cpp
-struct Pos // @struct[:alias][|int16_t,int16_t]
+// @struct[:alias][|int16_t,int16_t]
+struct Pos
 {
     int16_t x;
     int16_t y;
     ...
+};
 ```
 
 ## @enum
 
 ```cpp
-enum StateValue : uint16_t // @enum[:alias]
+// @enum[:alias]
+enum StateValue : uint16_t
 {
     TIMEOUT = 0x01,
     POS_ORIGIN = 0x02,
@@ -117,5 +136,6 @@ enum StateValue : uint16_t // @enum[:alias]
 Export is used to expose C++ Quirrel functions to the scripting engine via TreeRat.
 
 ```cpp
-    SQInteger greet(HSQUIRRELVM vm);   // @export[:alias]
+// @export[:alias]
+SQInteger greet(HSQUIRRELVM vm);
 ```
