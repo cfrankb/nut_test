@@ -92,7 +92,7 @@ int m_title; // @var[:alias]
 If optional parameters are declared, a constructor is addded.
 
 ```cpp
-struct Pos // @struct[|int16_t,int16_t]
+struct Pos // @struct[:alias][|int16_t,int16_t]
 {
     int16_t x;
     int16_t y;

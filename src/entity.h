@@ -7,22 +7,26 @@ class Entity
 public:
     Entity() : name("toto"), x(0), y(0), health(100), speed(4) {}
 
-    void Move(int dx, int dy) // @func:Move
+    // @func:Move
+    void Move(int dx, int dy)
     {
         x += dx;
         y += dy;
     }
 
-    void MoveDir(int aim) // @func:moveDir
+    // @func:moveDir
+    void MoveDir(int aim)
     {
     }
 
-    void Damage(int amount) // @func
+    // @func
+    void Damage(int amount)
     {
         health -= amount;
     }
 
-    int GetHealth() const // @func
+    // @func
+    int GetHealth() const
     {
         return health;
     }
@@ -37,7 +41,8 @@ public:
         speed = _speed;
     }
 
-    static int getMaxHealth() // @staticfunc
+    // @staticfunc
+    static int getMaxHealth()
     {
         return MAX_HEALTH;
     }
@@ -45,23 +50,19 @@ public:
     int getX() { return x; }
     int getY() { return y; }
 
-    enum Direction : int16_t
-    {
-        UP,
-        DOWN,
-        LEFT,
-        RIGHT,
-        MAX = RIGHT,
-        NOT_FOUND = -1 // 0xffff
-    };
-
 private:
-    const char *name;                    // @const
-    int x;                               // @var:X @var:x
-    int y;                               // @var
-    int health;                          // @var
-    int speed;                           // @prop:Speed,GetSpeed,SetSpeed
-    inline static int MAX_HEALTH = 1024; // @staticvar
+    // @const
+    const char *name;
+    // @var:X
+    int x;
+    // @var
+    int y;
+    // @var
+    int health;
+    // @prop:Speed,GetSpeed,SetSpeed
+    int speed;
+    // @staticvar
+    inline static int MAX_HEALTH = 1024;
 
     friend void registerBinding(CTreeRat &rat);
 };

@@ -20,7 +20,8 @@
 #include <list>
 #include <string>
 
-enum StateValue : uint16_t // @enum
+// @enum
+enum StateValue : uint16_t
 {
     TIMEOUT = 0x01,
     POS_ORIGIN = 0x02,
@@ -52,14 +53,14 @@ enum StateValue : uint16_t // @enum
     MSGF
 };
 
-enum StateType // @enum
+enum StateType
 {
     TYPE_X,
     TYPE_U,
     TYPE_S,
 };
 
-struct KeyOption //  @struct
+struct KeyOption
 {
     std::string display;
     uint16_t value;

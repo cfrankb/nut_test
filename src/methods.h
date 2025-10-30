@@ -2,6 +2,9 @@
 #include <sqrat.h>
 
 void testPrint(HSQUIRRELVM vm);
-SQInteger print_hello(HSQUIRRELVM vm); // @export:printHello
-SQInteger greet(HSQUIRRELVM vm);       // @export
-SQInteger add_numbers(HSQUIRRELVM vm); // @export:addNumbers
+// @export:printHello
+SQInteger print_hello(HSQUIRRELVM vm);
+// @export
+SQInteger greet(HSQUIRRELVM vm);
+// @export:addNumbers
+SQInteger add_numbers(HSQUIRRELVM vm);

@@ -21,7 +21,7 @@ void registerBinding(CTreeRat & rat)
         .Func("getS", &CStates::getS)
         .Func("hasU", &CStates::hasU)
         .Func("hasS", &CStates::hasS)
-        .Func("debug", &CStates::debug);
+        .Func("clear", &CStates::clear);
     Sqrat::RootTable(vm).Bind("CStates", classCStates);
 
     // === CMap Class ===
@@ -62,7 +62,6 @@ void registerBinding(CTreeRat & rat)
         .StaticFunc("getMaxHealth", &Entity::getMaxHealth)
         .ConstVar("name", &Entity::name)
         .Var("X", &Entity::x)
-        .Var("x", &Entity::x)
         .Var("y", &Entity::y)
         .Var("health", &Entity::health)
         .Prop("Speed", &Entity::GetSpeed, &Entity::SetSpeed)
@@ -101,13 +100,6 @@ void registerBinding(CTreeRat & rat)
         .Const("MSGF", ::StateValue::MSGF);
     Sqrat::RootTable(vm).Bind("StateValue", enumStateValue);
 
-    // === StateType Enum ===
-    auto enumStateType = Sqrat::ConstTable(vm)
-        .Const("TYPE_X", ::StateType::TYPE_X)
-        .Const("TYPE_U", ::StateType::TYPE_U)
-        .Const("TYPE_S", ::StateType::TYPE_S);
-    Sqrat::RootTable(vm).Bind("StateType", enumStateType);
-
     // === Direction Enum ===
     auto enumDirection = Sqrat::ConstTable(vm)
         .Const("UP", CMap::Direction::UP)
@@ -117,12 +109,6 @@ void registerBinding(CTreeRat & rat)
         .Const("MAX", CMap::Direction::MAX)
         .Const("NOT_FOUND", CMap::Direction::NOT_FOUND);
     Sqrat::RootTable(vm).Bind("Direction", enumDirection);
-
-    // === KeyOption Struct ===
-    auto structKeyOption = Sqrat::Class<KeyOption>(vm, "KeyOption")
-        .Var("display", &::KeyOption::display)
-        .Var("value", &::KeyOption::value);
-    Sqrat::RootTable(vm).Bind("KeyOption", structKeyOption);
 
     // === Pos Struct ===
     auto structPos = Sqrat::Class<Pos>(vm, "Pos")
