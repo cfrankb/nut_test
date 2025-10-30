@@ -46,7 +46,6 @@ def grab_vars(
     tag: Tag,
     binding: dict[str, list],
     class_name: str,
-    parts: list[str],
     line: str,
     line_num: int,
 ):
@@ -74,7 +73,7 @@ def grab_func(
     sig_token = next((p for p in parts if "(" in p), None)
     if not sig_token:
         print(f"no function signature on line {line_num}: {line}")
-        return
+        return False
     fn = (
         sig_token.split("(", 1)[0]
         .split("::")[-1]
@@ -84,14 +83,14 @@ def grab_func(
     )
 
     params = [tag.op, fn, tag.alias if tag.alias else fn, tag.args]
-    print(class_name, line, params)
+    # print(class_name, line, params)
     binding[class_name].append(params)
+    return True
 
 
 def get_tag_line(tag, op, line, line_num):
     tag.clear()
     a = line.split(op, 1)
-    # print(a)
     if len(a) != 2:
         print(f"can't find {op} on line {line_num}: {line}")
         return False
@@ -101,14 +100,11 @@ def get_tag_line(tag, op, line, line_num):
     if len(a) == 2:
         tag.args = a[1]
 
-    # print(a)
     a = a[0].split(":")
     if len(a) != 1:
         tag.alias = a[1]
         tag.names = a[1:]
 
-    # print(a)
-    # print(tag)
     return True
 
 
@@ -124,12 +120,17 @@ def scan_file(
     if basename == "bind.h":
         return
 
-    ALL_CLASS_TAGS = (FUNC, VAR, PROP, CONST, STATICVAR, STATICFUNC)
+    ALL_CLASS_TAGS = [FUNC, VAR, PROP, CONST, STATICVAR, STATICFUNC]
+    ALL_TAGS = set(ALL_CLASS_TAGS + [ENUM, STRUCT, EXPORT])
     with open(path) as sfile:
         struct_name = ""
         enum_group = ""
         class_name = ""
         line_num = 0
+        print_error = lambda err_msg: print(
+            f"{err_msg} [{basename}] on line {line_num}: `{line}`"
+        )
+
         tag: Tag = Tag()
         for line in sfile:
             line_num += 1
@@ -146,11 +147,29 @@ def scan_file(
 
             # Detect class
             if any(tag in line for tag in ALL_CLASS_TAGS) and not class_name:
-                print(f"class_name missing on line {line_num} -- tag ignored: {line}")
+                print_error("class_name missing")
+                continue
+
+            results = [
+                u for u in [p.startswith(tag) for tag in ALL_TAGS for p in parts] if u
+            ]
+            if len(results) > 1:
+                print_error("multiple tags found")
+                continue
+            found = [
+                op
+                for op in [EXPORT, FUNC, STATICFUNC, VAR, STATICVAR, CONST]
+                if op in line
+            ]
+            if len(found) > 1:
+                print_error("multiple conflicting tags")
+                continue
+            elif found:
+                get_tag_line(tag, found[0], line, line_num)
                 continue
 
             # class
-            elif line.startswith("class ") and not line.endswith(";"):
+            if line.startswith("class ") and not line.endswith(";"):
                 class_name = (
                     line.split("class", 1)[1]
                     .split()[0]
@@ -163,12 +182,10 @@ def scan_file(
                 continue
 
             # @export
-            elif EXPORT in line:
-                get_tag_line(tag, EXPORT, line, line_num)
             elif tag.op == EXPORT:
                 fn_sig = [p for p in parts if "(" in p]
                 if not fn_sig:
-                    print(f"can't find {EXPORT} name: {line}")
+                    print_error(f"can't find {EXPORT} name")
                     continue
                 fn = fn_sig[0].split("(", 1)[0]
                 exports.append([fn, tag.alias] if tag.alias else [fn, fn])
@@ -180,17 +197,21 @@ def scan_file(
             elif tag.op == ENUM and not enum_group:
                 if "enum" not in parts:
                     tag.clear()
-                    print(f"missing enum declaration on line {line_num}: {line}")
+                    print_error("missing enum declaration")
                     continue
                 a = line.strip().split("//", 1)
                 a = [x.strip() for x in a[0].split("enum") if x.strip()]
                 enum_group = a[0].split(":")[0].strip()
                 if not enum_group:
                     tag.clear()
-                    print(f"anonymous enums not allowed on line {line_num}: {line}")
+                    print_error("anonymous enums not allowed on line")
                     continue
                 if enum_group not in enums:
                     enums[enum_group] = []
+                else:
+                    tag.clear()
+                    print_error(f"enum group duplicated `{enum_group}`")
+                    enum_group = ""
             elif tag.op == ENUM and enum_group:
                 if line == "{":
                     continue
@@ -202,22 +223,26 @@ def scan_file(
                 enums[enum_group].append([name, f"{class_name}::{enum_group}::{name}"])
 
             elif STRUCT in line:
-                if "typedef" in parts:
-                    print(f"typedef not supported on line {line_num}: {line}")
-                    continue
                 get_tag_line(tag, STRUCT, line, line_num)
             elif tag.op == STRUCT and not struct_name:
+                if "typedef" in parts:
+                    tag.clear()
+                    print_error("typedef not supported")
+                    continue
                 a = line.strip().split("//", 1)
                 a = [x.strip() for x in a[0].split("struct") if x.strip()]
                 struct_name = a[0].split(":")[0].strip()
                 if not struct_name:
                     tag.clear()
-                    print(f"anonymous struct not allowed on line {line_num}: {line}")
+                    print_error("anonymous struct not allowed on line")
                     continue
                 if struct_name not in structs.fields:
                     structs.fields[struct_name] = []
                     structs.ctr[struct_name] = tag.args
-                pass
+                else:
+                    tag.clear()
+                    print_error(f"struct duplicated `{struct_name}`")
+                    struct_name = ""
             elif tag.op == STRUCT and struct_name:
                 if line == "{":
                     continue
@@ -240,14 +265,12 @@ def scan_file(
             elif PROP in line:
                 get_tag_line(tag, PROP, line, line_num)
                 if not tag.alias:
-                    print(f"Malformed {PROP} on line {line_num}: {line}")
+                    print_error(f"Malformed {PROP}")
                     tag.clear()
                     continue
                 parts = tag.alias.split(",")
                 if not (2 <= len(parts) <= 3):
-                    print(
-                        f"{PROP} expects getter,setter[,canSet] on line {line_num}: {line}"
-                    )
+                    print_error(f"{PROP} expects getter,setter[,canSet]")
                     tag.clear()
                     continue
                 prop_name = parts[0]
@@ -255,25 +278,12 @@ def scan_file(
                 setter = parts[2] if len(parts) == 3 else ""
                 binding[class_name].append([PROP, prop_name, getter, setter])
 
-            elif FUNC in line:
-                get_tag_line(tag, FUNC, line, line_num)
-
-            elif STATICFUNC in line:
-                get_tag_line(tag, STATICFUNC, line, line_num)
-
             elif tag.op in [FUNC, STATICFUNC]:
                 grab_func(tag, binding, class_name, parts, line, line_num)
                 tag.clear()
 
-            elif VAR in line:
-                get_tag_line(tag, VAR, line, line_num)
-            elif CONST in line:
-                get_tag_line(tag, CONST, line, line_num)
-            elif STATICVAR in line:
-                get_tag_line(tag, STATICVAR, line, line_num)
-
             elif tag.op in [VAR, STATICVAR, CONST]:
-                grab_vars(tag, binding, class_name, parts, line, line_num)
+                grab_vars(tag, binding, class_name, line, line_num)
                 tag.clear()
 
 
@@ -301,13 +311,10 @@ def write_cpp(
             "{",
             f"{TAB}HSQUIRRELVM vm = rat.vm();",
         ]
-        i = 0
         for class_name, binded in binding.items():
             if not binded:
                 continue
-            i += 1
-            if i != 1:
-                lines += [""]
+            lines += [""]
             entity = f"class{class_name}"
             lines += [
                 f"{TAB}// === {class_name} Class ===",
