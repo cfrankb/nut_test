@@ -39,12 +39,12 @@ public:
     CStates() = default;
     ~CStates() = default;
 
-    void setU(const uint16_t k, const uint16_t v);
-    void setS(const uint16_t k, const std::string &v);
-    uint16_t getU(const uint16_t k) const;
-    const char *getS(const uint16_t k) const;
-    bool hasU(const uint16_t k) const;
-    bool hasS(const uint16_t k) const;
+    void setU(const uint16_t k, const uint16_t v);     //@func
+    void setS(const uint16_t k, const std::string &v); //@func
+    uint16_t getU(const uint16_t k) const;             //@func
+    const char *getS(const uint16_t k) const;          //@func
+    bool hasU(const uint16_t k) const;                 //@func
+    bool hasS(const uint16_t k) const;                 //@func
 
     bool read(IFile &sfile);
     bool write(IFile &tfile) const;
@@ -52,7 +52,7 @@ public:
     bool write(FILE *tfile) const;
     bool fromMemory(uint8_t *ptr);
 
-    void debug() const;
+    void debug() const; //@func
     void clear();
     std::vector<StateValuePair> getValues() const;
     const std::unordered_map<uint16_t, std::string> &rawS() { return m_stateS; }

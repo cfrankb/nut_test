@@ -3,12 +3,26 @@
 #include "bind.h"
 #include "treerat.h"
 #include <sqrat.h>
-#include "entity.h"
 #include "map.h"
 #include "methods.h"
+#include "states.h"
+#include "entity.h"
+#include "statedata.h"
 
-void registerBinding(CTreeRat &rat)
+void registerBinding(CTreeRat & rat)
 {
+    Sqrat::Class<CStates> classCStates(rat.vm(), "CStates");
+    classCStates
+        .Ctor<>()
+        .Func("setU", &CStates::setU)
+        .Func("setS", &CStates::setS)
+        .Func("getU", &CStates::getU)
+        .Func("getS", &CStates::getS)
+        .Func("hasU", &CStates::hasU)
+        .Func("hasS", &CStates::hasS)
+        .Func("debug", &CStates::debug);
+    Sqrat::RootTable(rat.vm()).Bind("CStates", classCStates);
+
     Sqrat::Class<CMap> classCMap(rat.vm(), "CMap");
     classCMap
         .Ctor<>()
@@ -16,6 +30,7 @@ void registerBinding(CTreeRat &rat)
         .Func("set", &CMap::set)
         .Func("len", &CMap::len)
         .Func("hei", &CMap::hei)
+        .Func("resize", &CMap::resize)
         .Func("findFirst", &CMap::findFirst)
         .Func("count", &CMap::count)
         .Func("fill", &CMap::fill)
@@ -26,15 +41,18 @@ void registerBinding(CTreeRat &rat)
         .Func("title", &CMap::title)
         .Func("setTitle", &CMap::setTitle)
         .Func("replaceTile", &CMap::replaceTile)
-        .StaticFunc("toKey", &CMap::toKey)
+        .Func("statesConst", &CMap::statesConst)
+        .StaticFunc("toKey", static_cast<uint16_t (*)(uint8_t, uint8_t)>(&CMap::toKey))
+        .StaticFunc("toKeyPos", static_cast<uint16_t (*)(const Pos&)>(&CMap::toKey))
+        .StaticFunc("toPos", &CMap::toPos)
         .Func("isValid", &CMap::isValid)
-        .Func("shift", &CMap::shift);
-    Sqrat::RootTable(rat.vm()).SetValue("CMap", classCMap);
+        .Func("shift", &CMap::shift)
+        .Func("debug", &CMap::debug);
+    Sqrat::RootTable(rat.vm()).Bind("CMap", classCMap);
 
     Sqrat::Class<Entity> classEntity(rat.vm(), "Entity");
     classEntity
         .Ctor<>()
-        .Func("move", &Entity::Move)
         .Func("Move", &Entity::Move)
         .Func("moveDir", &Entity::MoveDir)
         .Func("Damage", &Entity::Damage)
@@ -49,18 +67,57 @@ void registerBinding(CTreeRat &rat)
         .StaticVar("MAX_HEALTH", &Entity::MAX_HEALTH);
     Sqrat::RootTable(rat.vm()).Bind("Entity", classEntity);
 
+    // === StateValue Enum ===
+    auto enumStateValue = Sqrat::ConstTable (rat.vm())
+        .Const("TIMEOUT", ::StateValue::TIMEOUT)
+        .Const("POS_ORIGIN", ::StateValue::POS_ORIGIN)
+        .Const("POS_EXIT", ::StateValue::POS_EXIT)
+        .Const("MAP_GOAL", ::StateValue::MAP_GOAL)
+        .Const("PAR_TIME", ::StateValue::PAR_TIME)
+        .Const("YEAR", ::StateValue::YEAR)
+        .Const("PRIVATE", ::StateValue::PRIVATE)
+        .Const("USERDEF1", ::StateValue::USERDEF1)
+        .Const("USERDEF2", ::StateValue::USERDEF2)
+        .Const("USERDEF3", ::StateValue::USERDEF3)
+        .Const("USERDEF4", ::StateValue::USERDEF4)
+        .Const("AUTHOR", ::StateValue::AUTHOR)
+        .Const("MSG0", ::StateValue::MSG0)
+        .Const("MSG1", ::StateValue::MSG1)
+        .Const("MSG2", ::StateValue::MSG2)
+        .Const("MSG3", ::StateValue::MSG3)
+        .Const("MSG4", ::StateValue::MSG4)
+        .Const("MSG5", ::StateValue::MSG5)
+        .Const("MSG6", ::StateValue::MSG6)
+        .Const("MSG7", ::StateValue::MSG7)
+        .Const("MSG8", ::StateValue::MSG8)
+        .Const("MSG9", ::StateValue::MSG9)
+        .Const("MSGA", ::StateValue::MSGA)
+        .Const("MSGB", ::StateValue::MSGB)
+        .Const("MSGC", ::StateValue::MSGC)
+        .Const("MSGD", ::StateValue::MSGD)
+        .Const("MSGE", ::StateValue::MSGE)
+        .Const("MSGF", ::StateValue::MSGF);
+    Sqrat::RootTable(rat.vm()).Bind("StateValue", enumStateValue);
+
+    // === StateType Enum ===
+    auto enumStateType = Sqrat::ConstTable (rat.vm())
+        .Const("TYPE_X", ::StateType::TYPE_X)
+        .Const("TYPE_U", ::StateType::TYPE_U)
+        .Const("TYPE_S", ::StateType::TYPE_S);
+    Sqrat::RootTable(rat.vm()).Bind("StateType", enumStateType);
+
     // === Direction Enum ===
-    auto enumDirection = Sqrat::ConstTable(rat.vm())
-                             .Const("UP", CMap::Direction::UP)
-                             .Const("DOWN", CMap::Direction::DOWN)
-                             .Const("LEFT", CMap::Direction::LEFT)
-                             .Const("RIGHT", CMap::Direction::RIGHT)
-                             .Const("MAX", CMap::Direction::MAX)
-                             .Const("NOT_FOUND", CMap::Direction::NOT_FOUND);
-    Sqrat::RootTable(rat.vm()).SetValue("Direction", enumDirection);
+    auto enumDirection = Sqrat::ConstTable (rat.vm())
+        .Const("UP", CMap::Direction::UP)
+        .Const("DOWN", CMap::Direction::DOWN)
+        .Const("LEFT", CMap::Direction::LEFT)
+        .Const("RIGHT", CMap::Direction::RIGHT)
+        .Const("MAX", CMap::Direction::MAX)
+        .Const("NOT_FOUND", CMap::Direction::NOT_FOUND);
+    Sqrat::RootTable(rat.vm()).Bind("Direction", enumDirection);
 }
 
-void registerGlobal(CTreeRat &rat)
+void registerGlobal(CTreeRat & rat)
 {
     rat.registerFn("printHello", print_hello);
     rat.registerFn("greet", greet);

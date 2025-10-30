@@ -49,7 +49,6 @@ public:
     bool hasSlot(const Sqrat::Table &table, const std::string &key);
     Sqrat::Object getSlot(const Sqrat::Table &table, const std::string &key);
     Sqrat::Table getOrCreateTable(Sqrat::Table &parent, const std::string &key);
-    static bool pushClassInstance(HSQUIRRELVM vm, const std::string &className, void *ptr);
 
 private:
     enum

@@ -67,13 +67,16 @@ def grab_func(
         .replace("&", "")
         .replace("*", "")
     )
-    print(fn)
+    # print(fn)
 
     # Process each @func
     for tag in (FUNC, STATICFUNC):
-        for token in [p for p in parts if p.startswith(tag)]:
-            # print(parts)
-            a = token.split(":", 1)
+        if tag in line:
+            a = line.split(tag)
+            a = a[1].split("|", 1)
+            args = a[1] if len(a) > 1 else ""
+
+            a = a[0].split(":", 1)
             if len(a) == 2:
                 rest = a[1]
                 alias = rest.split(",", 1)[0].strip() if "," in rest else rest.strip()
@@ -81,15 +84,10 @@ def grab_func(
                 alias = fn
             else:
                 print(f"expecting `:alias` for {tag}: {line}")
-            op = a[0]
 
-            binding[class_name].append(
-                [
-                    op,
-                    fn,
-                    alias,
-                ]
-            )
+            params = [tag, fn, alias, args]
+            binding[class_name].append(params)
+            break
 
 
 def scan_file(
@@ -105,7 +103,7 @@ def scan_file(
 
     # enums = {}
 
-    ALL_TAGS = (FUNC, VAR, PROP, CONST, STATICVAR, STATICFUNC, ENUM)
+    ALL_TAGS = (FUNC, VAR, PROP, CONST, STATICVAR, STATICFUNC)
     with open(path) as sfile:
         enum_group = ""
         class_name = ""
@@ -152,7 +150,7 @@ def scan_file(
                 headers.add(basename)
                 a = line.strip().split("//", 1)
                 a = [x.strip() for x in a[0].split("enum") if x.strip()]
-                print(line, a)
+                # print(line, a)
                 enum_group = (
                     a[0].split(":")[0].strip()
                 )  # f"{class_name}::{a[0]}" if class_name else a[0]
@@ -234,9 +232,19 @@ def write_cpp(
             for b in binded:
                 op = b[0]
                 if op == FUNC:
-                    lines += [f'{TAB*2}.Func("{b[2]}", &{class_name}::{b[1]})']
+                    ref = f"&{class_name}::{b[1]}"
+                    if b[3]:
+                        a = b[3].split(",")
+                        ref = f"static_cast<{a[0]} ({class_name}::*)({', '.join(a[1:])})>(&{class_name}::{b[1]})"
+                    lines += [f'{TAB*2}.Func("{b[2]}", {ref})']
                 if op == STATICFUNC:
-                    lines += [f'{TAB*2}.StaticFunc("{b[2]}", &{class_name}::{b[1]})']
+                    # print(b[3])
+                    # static_cast<void (MyClass::*)(int, int, int)>(&MyClass::move));
+                    ref = f"&{class_name}::{b[1]}"
+                    if b[3]:
+                        a = b[3].split(",")
+                        ref = f"static_cast<{a[0]} (*)({', '.join(a[1:])})>(&{class_name}::{b[1]})"
+                    lines += [f'{TAB*2}.StaticFunc("{b[2]}", {ref})']
                 elif op == VAR:
                     lines += [f'{TAB*2}.Var("{b[2]}", &{class_name}::{b[1]})']
                 elif op == STATICVAR:
@@ -271,7 +279,7 @@ def write_cpp(
 
             lines[-1] += ";"
             lines += [
-                f'{TAB}Sqrat::RootTable(rat.vm()).SetValue("{group_name}", {table_name});'
+                f'{TAB}Sqrat::RootTable(rat.vm()).Bind("{group_name}", {table_name});'
             ]
         lines += ["}"]
 

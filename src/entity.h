@@ -7,7 +7,7 @@ class Entity
 public:
     Entity() : name("toto"), x(0), y(0), health(100), speed(4) {}
 
-    void Move(int dx, int dy) // @func:move @func:Move
+    void Move(int dx, int dy) // @func:Move
     {
         x += dx;
         y += dy;

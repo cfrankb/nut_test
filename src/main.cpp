@@ -8,6 +8,7 @@
 #include <sqstdmath.h>
 #include <sqstdstring.h>
 #include <sqstdsystem.h>
+#include <sqrat/sqratMemberMethods.h>
 #include "entity.h"
 #include "logger.h"
 #include "treerat.h"
@@ -15,24 +16,25 @@
 #include "methods.h"
 #include "map.h"
 #include "bind_map.h"
+#include "rathelper.h"
 
-// --- C++ ---
 CMap g_map(32, 32, 0);
 
-void init_squirrel(HSQUIRRELVM v)
+void map_test(CTreeRat &rat)
 {
-    Register_CMap(v); // your full binding
+    if (!g_map.read("data/maps/level01.dat"))
+    {
+        LOGE("cannot open map");
+        return;
+    }
+    LOGI("title: %s", g_map.title());
+    LOGI("g_map-->%p", &g_map);
 
+    auto v = rat.vm();
     // Expose shared map
-    sq_pushroottable(v);
-    sq_pushstring(v, _SC("getMap"), -1);
-    sq_newclosure(v, [](HSQUIRRELVM v) -> SQInteger
-                  {
-        PushCMapInstance(v, &g_map);
-        //CTreeRat::pushClassInstance(v, "CMap", &g_map);
-        return 1; }, 0);
-    sq_newslot(v, -3, SQFalse);
-    sq_pop(v, 1);
+    Sqrat::RootTable(v).SetInstance("g_map", &g_map);
+
+    rat.runScript("data/scripts/map.nut");
 }
 
 void sq_test(CTreeRat &rat)
@@ -69,21 +71,11 @@ void sq_test(CTreeRat &rat)
     rat.runScript("data/scripts/config.nut");
 }
 
-void map_test(CTreeRat &rat)
-{
-    g_map.set(5, 5, 100);
-    init_squirrel(rat.vm());
-    Register_CMap(rat.vm());
-    PushCMapInstance(rat.vm(), &g_map);
-
-    rat.runScript("data/scripts/map.nut");
-}
-
 int main()
 {
     CTreeRat rat;
     registerGlobal(rat);
-    // registerBinding(rat);
+    registerBinding(rat);
 
     map_test(rat);
 

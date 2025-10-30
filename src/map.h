@@ -22,6 +22,8 @@
 #include <functional>
 #include <memory> // For unique_ptr
 #include "shared/IFile.h"
+#include "logger.h"
+#include "states.h"
 
 typedef std::unordered_map<uint16_t, uint8_t> AttrMap;
 struct Pos
@@ -74,16 +76,16 @@ public:
     bool write(FILE *tfile) const;
     bool write(IFile &tfile) const;
     void clear();
-    int len() const; // @func
-    int hei() const; // @func
-    bool resize(uint16_t in_len, uint16_t in_hei, uint8_t t, bool fast);
-    const Pos findFirst(const uint8_t tileId) const;                 // @func
-    size_t count(const uint8_t tileId) const;                        // @func
-    void fill(uint8_t ch = 0);                                       // @func
-    uint8_t getAttr(const uint8_t x, const uint8_t y) const;         // @func
-    void setAttr(const uint8_t x, const uint8_t y, const uint8_t a); // @func
-    size_t size() const;                                             // @func
-    const char *lastError();                                         // @func
+    int len() const;                                                     // @func
+    int hei() const;                                                     // @func
+    bool resize(uint16_t in_len, uint16_t in_hei, uint8_t t, bool fast); // @func
+    const Pos findFirst(const uint8_t tileId) const;                     // @func
+    size_t count(const uint8_t tileId) const;                            // @func
+    void fill(uint8_t ch = 0);                                           // @func
+    uint8_t getAttr(const uint8_t x, const uint8_t y) const;             // @func
+    void setAttr(const uint8_t x, const uint8_t y, const uint8_t a);     // @func
+    size_t size() const;                                                 // @func
+    const char *lastError();                                             // @func
     CMap &operator=(const CMap &map);
     bool fromMemory(uint8_t *mem);
     const char *title();                            // @func
@@ -91,11 +93,11 @@ public:
     void replaceTile(const uint8_t, const uint8_t); // @func
     const AttrMap &attrs() { return m_attrs; }
     CStates &states();
-    inline const CStates &statesConst() const { return *m_states; };
-    static uint16_t toKey(const uint8_t x, const uint8_t y); // @staticfunc
-    // static uint16_t toKey(const Pos &pos);
-    static Pos toPos(const uint16_t key);
-    inline bool isValid(const int x, const int y) const // @func
+    inline const CStates &statesConst() const { return *m_states; }; // @func
+    static uint16_t toKey(const uint8_t x, const uint8_t y);         // @staticfunc|uint16_t,uint8_t,uint8_t
+    static uint16_t toKey(const Pos &pos);                           // @staticfunc:toKeyPos|uint16_t,const Pos&
+    static Pos toPos(const uint16_t key);                            // @staticfunc
+    inline bool isValid(const int x, const int y) const              // @func
     {
         return x >= 0 && x < m_len && y >= 0 && y < m_hei;
     }
@@ -110,7 +112,7 @@ public:
         NOT_FOUND = -1 // 0xffff
     };
     void shift(Direction aim); // @func
-    void debug();
+    void debug();              // @func
 
 private:
     template <typename WriteFunc>
