@@ -22,6 +22,7 @@ void registerBinding(CTreeRat & rat)
         .Func("getS", &CStates::getS)
         .Func("hasU", &CStates::hasU)
         .Func("hasS", &CStates::hasS)
+        .Func("debug", &CStates::debug)
         .Func("clear", &CStates::clear);
     Sqrat::RootTable(vm).Bind("CStates", classCStates);
 

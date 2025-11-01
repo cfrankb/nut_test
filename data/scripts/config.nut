@@ -1,7 +1,7 @@
 print(Config.isFullScreen); // prints true
 print(Config.color); // prints red
 print(Config.name);
-print(Config.data.x);
+print(Config.data.X);
 
 //Config <- toto;
 //Config.toto = "Clown";

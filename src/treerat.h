@@ -50,14 +50,14 @@ public:
     Sqrat::Object getSlot(const Sqrat::Table &table, const std::string &key);
     Sqrat::Table getOrCreateTable(Sqrat::Table &parent, const std::string &key);
     void setVerbose(bool verbose) { m_verbose = verbose; };
+    static void squirrel_print(HSQUIRRELVM vm, const SQChar *s, ...);
+    static void squirrel_error(HSQUIRRELVM vm, const SQChar *s, ...);
 
 private:
     enum
     {
         STACK_SIZE = 1024,
     };
-    static void squirrel_print(HSQUIRRELVM vm, const SQChar *s, ...);
-    static void squirrel_error(HSQUIRRELVM vm, const SQChar *s, ...);
     static SQInteger MyFileWriter(SQUserPointer up, SQUserPointer data, SQInteger size);
     HSQUIRRELVM m_vm;
     bool m_verbose;

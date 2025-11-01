@@ -58,7 +58,9 @@ public:
     bool write(FILE *tfile) const;
     bool fromMemory(uint8_t *ptr);
 
-    void debug() const; //@func
+    //@func
+    void debug() const;
+    //@func
     void clear();
     std::vector<StateValuePair> getValues() const;
     const std::unordered_map<uint16_t, std::string> &rawS() { return m_stateS; }

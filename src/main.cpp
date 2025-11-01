@@ -17,6 +17,7 @@
 #include "map.h"
 #include "bind_map.h"
 #include "rathelper.h"
+#include "modulemanager.h"
 
 CMap g_map(32, 32, 0);
 
@@ -45,8 +46,15 @@ void sq_test(CTreeRat &rat)
     )";
     rat.loadString(code);
     rat.runScript("data/scripts/test.nut");
-
+    rat.runScript("data/scripts/test2.nut");
+    rat.runScript("data/scripts/generator.nut");
+    rat.runScript("data/scripts/class_rect.nut");
+    rat.runScript("data/scripts/class_inheritance.nut");
+    rat.runScript("data/scripts/thread.nut");
+    rat.runScript("data/scripts/weakptr.nut");
     rat.runScript("data/scripts/entity_test.nut");
+    rat.runScript("data/scripts/compiled.nut");
+    rat.runScript("data/scripts/table.nut");
 
     auto root = rat.root();
     auto configTable = rat.getOrCreateTable(root, "Config");
@@ -71,14 +79,38 @@ void sq_test(CTreeRat &rat)
     rat.runScript("data/scripts/config.nut");
 }
 
+void module_test(CTreeRat &rat)
+{
+    rat.runScript("data/scripts/main.nut");
+}
+
 int main()
 {
     CTreeRat rat;
     registerGlobal(rat);
     registerBinding(rat);
+    rat.setVerbose(false);
 
-    sq_test(rat);
+    // sq_test(rat);
     map_test(rat);
+    // module_test(rat);
+
+    ScriptModuleManager man(rat.vm());
+    man.LoadModule("player", "data/scripts/modules/player.nut");
+
+    Sqrat::Table player = man.Require("player");
+    Sqrat::Function heal(player, "heal");
+    heal.Execute(25); // Healed to 125
+    // int updatedHealth = player.GetSlot("health").Cast<int>(); // player.GetValue<int>("health");
+    int updatedHealth = player["health"].Cast<int>();
+    std::cout << "Updated health: " << updatedHealth << std::endl;
+
+    heal.Execute(25); // Healed to 125
+                      // int updatedHealth = player.GetSlot("health").Cast<int>(); // player.GetValue<int>("health");
+    updatedHealth = player["health"].Cast<int>();
+    std::cout << "Updated health: " << updatedHealth << std::endl;
+
+    LOGI("vdfdfdf");
 
     return 0;
 }

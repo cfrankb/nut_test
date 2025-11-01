@@ -147,7 +147,8 @@ bool CTreeRat::runScript(const std::string &filepath)
         return false;
     }
     std::string contents((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-    LOGI("Script contents:\n%s", contents.c_str());
+    if (m_verbose)
+        LOGI("Script contents:\n%s", contents.c_str());
 
     Sqrat::Script script(m_vm);
     Sqrat::string err;
@@ -164,7 +165,8 @@ bool CTreeRat::runScript(const std::string &filepath)
         LOGE("Runtime error:%s", err.c_str());
         return false;
     }
-    LOGI("Script finished");
+    if (m_verbose)
+        LOGI("Script finished");
     return true;
 }
 
@@ -234,7 +236,8 @@ Sqrat::Table CTreeRat::getOrCreateTable(Sqrat::Table &parent, const std::string 
 {
     if (!hasSlot(parent, key))
     {
-        LOGI("new table: %s", key.c_str());
+        if (m_verbose)
+            LOGI("new table: %s", key.c_str());
         Sqrat::Table subtable(m_vm);
         parent.Bind(key.c_str(), subtable); //  attach subtable to parent
         return subtable;
