@@ -6,9 +6,12 @@
 #include <iostream>
 #include <squirrel.h>
 #include <sqstdaux.h> // for sqstd_seterrorhandlers
+#include <functional>
 
 #include "logger.h"
 #include "treerat.h"
+
+using EnvInjector = std::function<void(HSQUIRRELVM vm, Sqrat::Table &env)>;
 
 class ScriptModuleManager
 {
@@ -47,70 +50,40 @@ public:
             return false;
         }
 
-        LOGI("code: %s", code.c_str());
+        //  LOGI("code: %s", code.c_str());
+
+        // Create environment
+        Sqrat::Table env(vm);
+        env.SetValue("name", name);
+        env.SetValue("exports", Sqrat::Table(vm));
+
+        // Inject globals
+        ApplyInjectors(env);
 
         // Compile the script
         Sqrat::string errMsg;
         Sqrat::Script script(vm);
-
-        bool result = script.CompileString(code.c_str(), errMsg, name);
+        bool result = script.CompileString(code.c_str(), errMsg, name, &env.GetObject());
         if (!result)
         {
             LOGE("Compile error: %s", errMsg.c_str());
             return false;
         }
 
-        // CRITICAL: We need to manually execute to capture return value
-        // script.Run() might not leave the return value on the stack
-
-        // Push the compiled closure
-        sq_pushobject(vm, script.GetObject());
-        sq_pushroottable(vm); // Push 'this' (root table)
-
-        // Call the script with return value capture
-        if (SQ_FAILED(sq_call(vm, 1, SQTrue, SQTrue))) // SQTrue = want return value
+        if (!script.Run(errMsg, &env))
         {
-            LOGE("Script execution failed");
-            sq_pop(vm, 1); // Pop closure
+            LOGE("Runtime error: %s", errMsg.c_str());
             return false;
         }
 
-        LOGI("script executed");
-
-        // Now the return value is on top of stack
-        SQObjectType type = sq_gettype(vm, -1);
-        LOGI("Return value type: %d (table=%d)", type, OT_TABLE);
-
-        if (type != OT_TABLE)
-        {
-            LOGE("Script did not return a table, got type: %d", type);
-            sq_pop(vm, 2); // Pop return value and closure
-            return false;
-        }
-
-        // Get the exports table from stack
-        HSQOBJECT exportsObj;
-        sq_resetobject(&exportsObj);
-        sq_getstackobj(vm, -1, &exportsObj);
-        sq_addref(vm, &exportsObj);
-
-        LOGI("retrieved exports");
-
-        sq_pop(vm, 2); // Pop return value and closure
-
-        // Wrap in Sqrat::Table
-        Sqrat::Table exportsTable(exportsObj, vm);
-
-        LOGI("wrapped");
-
-        if (exportsTable.IsNull())
+        Sqrat::Object exportsObj = env["exports"];
+        if (exportsObj.IsNull())
         {
             LOGE("Module missing exports: %s", name.c_str());
-            sq_release(vm, &exportsObj);
             return false;
         }
 
-        modules[name] = {name, exportsTable};
+        modules[name] = {name, exportsObj};
         LOGI("Module loaded successfully: %s", name.c_str());
         return true;
     }
@@ -139,8 +112,20 @@ public:
         }
     }
 
+    void AddInjector(EnvInjector fn)
+    {
+        injectors.push_back(std::move(fn));
+    }
+
+    void ApplyInjectors(Sqrat::Table &env)
+    {
+        for (auto &fn : injectors)
+            fn(vm, env);
+    }
+
 private:
     HSQUIRRELVM vm;
+    std::vector<EnvInjector> injectors;
     std::map<std::string, Module> modules;
 
     std::string ReadFile(const std::string &path)

@@ -79,10 +79,18 @@ void sq_test(CTreeRat &rat)
     rat.runScript("data/scripts/config.nut");
 }
 
+void InjectGameGlobals(HSQUIRRELVM vm, Sqrat::Table &env)
+{
+    env.SetValue("g_map", g_map);
+    env.SetValue("print", Sqrat::RootTable(vm)["print"]);
+    // etc.
+}
+
 void module_test(CTreeRat &rat)
 {
     ScriptModuleManager man(rat.vm());
     Sqrat::RootTable(rat.vm()).SetInstance("g_man", &man);
+    man.AddInjector(InjectGameGlobals);
     man.LoadModule("player", "data/scripts/modules/player.nut");
 
     Sqrat::Table player = man.Require("player");
