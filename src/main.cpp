@@ -81,21 +81,8 @@ void sq_test(CTreeRat &rat)
 
 void module_test(CTreeRat &rat)
 {
-    rat.runScript("data/scripts/main.nut");
-}
-
-int main()
-{
-    CTreeRat rat;
-    registerGlobal(rat);
-    registerBinding(rat);
-    rat.setVerbose(false);
-
-    // sq_test(rat);
-    map_test(rat);
-    // module_test(rat);
-
     ScriptModuleManager man(rat.vm());
+    Sqrat::RootTable(rat.vm()).SetInstance("g_man", &man);
     man.LoadModule("player", "data/scripts/modules/player.nut");
 
     Sqrat::Table player = man.Require("player");
@@ -109,6 +96,20 @@ int main()
                       // int updatedHealth = player.GetSlot("health").Cast<int>(); // player.GetValue<int>("health");
     updatedHealth = player["health"].Cast<int>();
     std::cout << "Updated health: " << updatedHealth << std::endl;
+
+    rat.runScript("data/scripts/test_module.nut");
+}
+
+int main()
+{
+    CTreeRat rat;
+    registerGlobal(rat);
+    registerBinding(rat);
+    rat.setVerbose(false);
+
+    // sq_test(rat);
+    map_test(rat);
+    module_test(rat);
 
     LOGI("vdfdfdf");
 

@@ -25,9 +25,10 @@ public:
         Sqrat::Class<ScriptModuleManager> mgrClass(vm, className);
         mgrClass
             .Ctor() // optional, only needed if scripts will construct it
-            .Func("LoadModule", &LoadModule)
-            .Func("Require", &Require)
-            .Func("ListModule", &ListModules);
+            .Func("LoadModule", &ScriptModuleManager::LoadModule)
+            .Func("Require", &ScriptModuleManager::Require)
+            .Func("Unload", &ScriptModuleManager::Unload)
+            .Func("ListModules", &ScriptModuleManager::ListModules);
         Sqrat::RootTable(vm).Bind(className, mgrClass);
     }
 
@@ -52,7 +53,7 @@ public:
         Sqrat::string errMsg;
         Sqrat::Script script(vm);
 
-        bool result = script.CompileString(code.c_str(), errMsg, path);
+        bool result = script.CompileString(code.c_str(), errMsg, name);
         if (!result)
         {
             LOGE("Compile error: %s", errMsg.c_str());
