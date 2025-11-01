@@ -5,8 +5,9 @@
 #include <fstream>
 #include <iostream>
 #include <squirrel.h>
-#include <sqstdaux.h> // for sqstd_seterrorhandlers
+#include <sqstdaux.h>
 #include <functional>
+#include <exception>
 
 #include "logger.h"
 #include "treerat.h"
@@ -19,6 +20,7 @@ public:
     struct Module
     {
         std::string name;
+        std::string path;
         Sqrat::Table exports;
     };
 
@@ -33,6 +35,41 @@ public:
             .Func("Unload", &ScriptModuleManager::Unload)
             .Func("ListModules", &ScriptModuleManager::ListModules);
         Sqrat::RootTable(vm).Bind(className, mgrClass);
+    }
+
+    bool LoadNativeModule(const std::string &name, SQInteger (*entryPoint)(HSQUIRRELVM))
+    {
+        if (modules.count(name))
+        {
+            LOGE("Module already loaded: %s", name.c_str());
+            return false;
+        }
+
+        SQInteger result = entryPoint(vm);
+        if (result != 1)
+        {
+            LOGE("Native module %s failed to load", name.c_str());
+            return false;
+        }
+
+        HSQOBJECT exportsObj;
+        sq_getstackobj(vm, -1, &exportsObj);
+        sq_addref(vm, &exportsObj);
+        Sqrat::Table exports(exportsObj, vm);
+        sq_pop(vm, 1);
+
+        // Call onLoad if present
+        Sqrat::Function onLoad(exports, "onLoad");
+        if (!onLoad.IsNull())
+        {
+            if (!onLoad.Execute(Sqrat::Table(vm)))
+            {
+                LOGE("onLoad failed for native module: %s", name.c_str());
+            }
+        }
+
+        modules[name] = Module{name, "", exports};
+        return true;
     }
 
     bool LoadModule(const std::string &name, const std::string &path)
@@ -83,7 +120,7 @@ public:
             return false;
         }
 
-        modules[name] = {name, exportsObj};
+        modules[name] = {name, path, exportsObj};
         LOGI("Module loaded successfully: %s", name.c_str());
         return true;
     }
@@ -94,14 +131,24 @@ public:
     {
         if (!modules.count(name))
         {
-            throw std::runtime_error("Module not loaded: " + name);
+            LOGE("Module not loaded: %s", name.c_str());
         }
         return modules[name].exports;
     }
 
     void Unload(const std::string &name)
     {
-        modules.erase(name);
+        auto it = modules.find(name);
+        if (it != modules.end())
+        {
+            Sqrat::Function onUnload(it->second.exports, "onUnload");
+            if (!onUnload.IsNull())
+            {
+                if (!onUnload.Execute())
+                    LOGE("onUnload error: %s", name.c_str());
+            }
+            modules.erase(it);
+        }
     }
 
     void ListModules() const
@@ -112,21 +159,35 @@ public:
         }
     }
 
+    bool ReloadModule(const std::string &name)
+    {
+        auto it = modules.find(name);
+        if (it == modules.end())
+        {
+            LOGE("Module not loaded: %s", name.c_str());
+            return false;
+        }
+
+        std::string path = it->second.path; // Store path in Module struct
+        Unload(name);
+        return LoadModule(name, path);
+    }
+
     void AddInjector(EnvInjector fn)
     {
         injectors.push_back(std::move(fn));
-    }
-
-    void ApplyInjectors(Sqrat::Table &env)
-    {
-        for (auto &fn : injectors)
-            fn(vm, env);
     }
 
 private:
     HSQUIRRELVM vm;
     std::vector<EnvInjector> injectors;
     std::map<std::string, Module> modules;
+
+    void ApplyInjectors(Sqrat::Table &env)
+    {
+        for (auto &fn : injectors)
+            fn(vm, env);
+    }
 
     std::string ReadFile(const std::string &path)
     {

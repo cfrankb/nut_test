@@ -18,10 +18,11 @@
 #include "bind_map.h"
 #include "rathelper.h"
 #include "modulemanager.h"
+#include "module_natve.h"
 
 CMap g_map(32, 32, 0);
 
-void map_test(CTreeRat &rat)
+void test_map(CTreeRat &rat)
 {
     if (!g_map.read("data/maps/level01.dat"))
     {
@@ -38,7 +39,7 @@ void map_test(CTreeRat &rat)
     rat.runScript("data/scripts/map.nut");
 }
 
-void sq_test(CTreeRat &rat)
+void test_sq(CTreeRat &rat)
 {
     const char *code = R"(
         print("Hello from script");
@@ -86,7 +87,7 @@ void InjectGameGlobals(HSQUIRRELVM vm, Sqrat::Table &env)
     // etc.
 }
 
-void module_test(CTreeRat &rat)
+void test_module(CTreeRat &rat)
 {
     ScriptModuleManager man(rat.vm());
     Sqrat::RootTable(rat.vm()).SetInstance("g_man", &man);
@@ -105,6 +106,8 @@ void module_test(CTreeRat &rat)
     updatedHealth = player["health"].Cast<int>();
     std::cout << "Updated health: " << updatedHealth << std::endl;
 
+    man.LoadNativeModule("native", native_entryPoint);
+
     rat.runScript("data/scripts/test_module.nut");
 }
 
@@ -116,10 +119,8 @@ int main()
     rat.setVerbose(false);
 
     // sq_test(rat);
-    map_test(rat);
-    module_test(rat);
-
-    LOGI("vdfdfdf");
+    test_map(rat);
+    test_module(rat);
 
     return 0;
 }
