@@ -15,7 +15,6 @@
 #include "bind.h"
 #include "methods.h"
 #include "map.h"
-#include "bind_map.h"
 #include "rathelper.h"
 #include "modulemanager.h"
 #include "module_natve.h"
@@ -80,10 +79,10 @@ void test_sq(CTreeRat &rat)
     rat.runScript("data/scripts/config.nut");
 }
 
-void InjectGameGlobals(HSQUIRRELVM vm, Sqrat::Table &env)
+void injectGameGlobals(HSQUIRRELVM vm, Sqrat::Table &env)
 {
     env.SetValue("g_map", g_map);
-    env.SetValue("print", Sqrat::RootTable(vm)["print"]);
+    //   env.SetValue("print", Sqrat::RootTable(vm)["print"]);
     // etc.
 }
 
@@ -91,7 +90,8 @@ void test_module(CTreeRat &rat)
 {
     ScriptModuleManager man(rat.vm());
     Sqrat::RootTable(rat.vm()).SetInstance("g_man", &man);
-    man.AddInjector(InjectGameGlobals);
+    man.AddInjector(injectGameGlobals);
+    man.AddInjector(injectSelectBindings);
     man.LoadModule("player", "data/scripts/modules/player.nut");
 
     Sqrat::Table player = man.Require("player");

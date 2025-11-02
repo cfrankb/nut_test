@@ -23,4 +23,8 @@ print(map.title())
 
 print("exports table: " + exports);
 
+greet("Fatime",4)
+
+LOGI($"this is a log from module: {name}")
+
 return exports;

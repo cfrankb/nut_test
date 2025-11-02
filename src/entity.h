@@ -2,6 +2,8 @@
 
 class CTreeRat;
 
+#include "bind.h"
+
 class Entity
 {
 public:
@@ -65,4 +67,5 @@ private:
     inline static int MAX_HEALTH = 1024;
 
     friend void registerBinding(CTreeRat &rat);
+    friend void createBindingRegistry(HSQUIRRELVM vm);
 };

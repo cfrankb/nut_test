@@ -13,13 +13,36 @@ public:
     bool saveByteCode(const std::string &filepath, const std::string &dest);
     bool loadString(const char *s);
     inline HSQUIRRELVM &vm() { return m_vm; }
-    void registerFn(const char *name, SQFUNCTION fn);
+    // -----------------------------------------------------------------
+    // 1. Classic Squirrel entry point (kept for backward compatibility)
+    // -----------------------------------------------------------------
+    void registerFn(const char *name, SQFUNCTION fn)
+    {
+        // Register native function
+        sq_pushroottable(m_vm);
+        sq_pushstring(m_vm, name, -1);
+        sq_newclosure(m_vm, fn, 0);
+        sq_newslot(m_vm, -3, SQFalse); // add to root table
+        sq_pop(m_vm, 1);
+    }
+
+    /* -----------------------------------------------------------------
+       2. Generic overload – delegates straight to Sqrat
+       ----------------------------------------------------------------- */
+    template <typename F>
+    void registerFn(const char *name,
+                    F &&method,
+                    const SQChar *docstring = nullptr)
+    {
+        Sqrat::Table root = Sqrat::RootTable(m_vm);
+        root.Func(name, std::forward<F>(method), docstring);
+    }
+
     void reset();
     Sqrat::Table root();
     template <typename T>
     void setValue(Sqrat::Table &table, const SQChar *name, const T &val)
     {
-        // auto &wm = m_vm;
         sq_pushobject(m_vm, table.GetObject());
         sq_pushstring(m_vm, name, -1);
         Sqrat::PushVar(m_vm, val);

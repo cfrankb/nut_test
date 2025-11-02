@@ -195,16 +195,6 @@ bool CTreeRat::loadString(const char *code)
     return true;
 }
 
-void CTreeRat::registerFn(const char *name, SQFUNCTION fn)
-{
-    // Register native function
-    sq_pushroottable(m_vm);
-    sq_pushstring(m_vm, name, -1);
-    sq_newclosure(m_vm, fn, 0);
-    sq_newslot(m_vm, -3, SQFalse); // add to root table
-    sq_pop(m_vm, 1);
-}
-
 void CTreeRat::reset()
 {
     sq_close(m_vm);
